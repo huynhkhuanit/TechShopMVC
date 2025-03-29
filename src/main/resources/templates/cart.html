@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - TechShop</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+    <!-- Google Fonts (Open Sans) -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- AOS (Animate On Scroll) CDN -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-5 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-microchip text-3xl"></i>
+                <h1 class="text-3xl font-bold">TechShop</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-8 items-center">
+                    <li><a href="/" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-home mr-2"></i> Trang chủ</a></li>
+                    <li><a href="/products" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-laptop mr-2"></i> Sản phẩm</a></li>
+                    <li><a href="/about" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-info-circle mr-2"></i> Giới thiệu</a></li>
+                    <li><a href="/contact" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-envelope mr-2"></i> Liên hệ</a></li>
+                    <li><a href="/cart" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-shopping-cart mr-2"></i> Giỏ hàng</a></li>
+                    <li th:if="${#authorization.expression('isAuthenticated()')}">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-user-circle text-2xl"></i>
+                                <span th:text="${#authentication.getName()}"></span>
+                            </div>
+                            <a href="#" onclick="showLogoutModal()" class="text-red-400 hover:text-red-300 transition duration-300 flex items-center">
+                                <i class="fas fa-sign-out-alt text-xl"></i>
+                            </a>
+                        </div>
+                    </li>
+                    <li th:unless="${#authorization.expression('isAuthenticated()')}">
+                        <a href="/login" class="bg-yellow-500 text-white px-5 py-2 rounded-full hover:bg-yellow-600 transition duration-300 flex items-center">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Đăng nhập
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Logout Confirm Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Xác nhận đăng xuất</h3>
+            <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất không?</p>
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeLogoutModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-300">Hủy</button>
+                <a href="/logout" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800" data-aos="fade-up">Giỏ hàng của bạn</h2>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${message}" class="p-4 bg-green-100 text-green-800 p W-4 rounded-lg mb-6 text-center">
+                <p th:text="${message}"></p>
+            </div>
+            <div th:if="${error}" class="bg-red-100 text-red-800 p-4 rounded-lg mb-6 text-center">
+                <p th:text="${error}"></p>
+            </div>
+
+            <!-- Cart Items -->
+            <div th:if="${#lists.isEmpty(cartItems)}" class="text-center text-gray-600">
+                <p>Giỏ hàng của bạn đang trống.</p>
+                <a href="/products" class="text-blue-600 hover:underline mt-4 inline-block">Tiếp tục mua sắm</a>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(cartItems)}">
+                <div class="space-y-6">
+                    <div th:each="item : ${cartItems}" class="flex items-center bg-gray-50 p-6 rounded-xl shadow-lg" data-aos="fade-up">
+                        <img th:src="${item.product.imageUrl}" alt="Product" class="w-24 h-24 object-cover rounded-lg mr-6">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-semibold text-gray-800" th:text="${item.product.name}"></h3>
+                            <p class="text-gray-600" th:text="${#numbers.formatInteger(item.product.price, 0, 'COMMA')} + ' VNĐ'"></p>
+                            <p class="text-gray-600">Tổng: <span th:text="${#numbers.formatInteger(item.product.price * item.quantity, 0, 'COMMA')} + ' VNĐ'"></span></p>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <form th:action="@{/cart/update}" method="post" class="flex items-center">
+                                <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                <input type="number" name="quantity" th:value="${item.quantity}" min="1" class="w-16 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="submit" class="ml-2 text-blue-600 hover:underline">Cập nhật</button>
+                            </form>
+                            <form th:action="@{/cart/remove}" method="post">
+                                <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                <button type="submit" class="text-red-600 hover:underline">Xóa</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="mt-8 bg-gray-100 p-6 rounded-xl shadow-lg" data-aos="fade-up">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Tổng cộng</h3>
+                    <p class="text-xl text-gray-600 mb-4">
+                        Tổng tiền: <span th:text="${#numbers.formatInteger(cartTotal, 0, 'COMMA')} + ' VNĐ'"></span>
+                    </p>
+                    <a href="#" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">Thanh toán</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-10">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-instagram"></i></a>
+            </div>
+            <p class="text-lg mb-2">© 2025 TechShop. All rights reserved.</p>
+            <p>
+                Liên hệ: <a href="mailto:contact@techshop.com" class="hover:underline">contact@techshop.com</a> | 
+                <a href="tel:0123456789" class="hover:underline">0123-456-789</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- AOS JavaScript -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

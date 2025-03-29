@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TechShop - Linh kiện máy tính & Công nghệ</title>
+        <!-- Tailwind CSS CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <!-- Font Awesome CDN cho icon -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        />
+        <!-- Google Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+            rel="stylesheet"
+        />
+        <!-- AOS (Animate On Scroll) CDN -->
+        <link
+            href="https://unpkg.com/aos@2.3.1/dist/aos.css"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                font-family: "Open Sans", sans-serif;
+            }
+            /* Tùy chỉnh hiệu ứng hover cho button */
+            .btn-primary {
+                transition: transform 0.3s ease, background-color 0.3s ease;
+            }
+            .btn-primary:hover {
+                transform: scale(1.05);
+                background-color: #facc15;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-50">
+        <!-- Header -->
+        <header
+            class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-5 shadow-lg sticky top-0 z-50"
+        >
+            <div
+                class="container mx-auto flex justify-between items-center px-6"
+            >
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-microchip text-3xl"></i>
+                    <h1 class="text-3xl font-bold">TechShop</h1>
+                </div>
+                <nav>
+                    <ul class="flex space-x-8 items-center">
+                        <li>
+                            <a
+                                href="/"
+                                class="hover:text-yellow-300 transition duration-300 flex items-center"
+                                ><i class="fas fa-home mr-2"></i> Trang chủ</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="/products"
+                                class="hover:text-yellow-300 transition duration-300 flex items-center"
+                                ><i class="fas fa-laptop mr-2"></i> Sản phẩm</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="/about"
+                                class="hover:text-yellow-300 transition duration-300 flex items-center"
+                                ><i class="fas fa-info-circle mr-2"></i> Giới
+                                thiệu</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="/contact"
+                                class="hover:text-yellow-300 transition duration-300 flex items-center"
+                                ><i class="fas fa-envelope mr-2"></i> Liên hệ</a
+                            >
+                        </li>
+                        <li
+                            th:if="${#authorization.expression('isAuthenticated()')}"
+                        >
+                            <div class="flex items-center space-x-4">
+                                <!-- Hiển thị icon user và tên đăng nhập -->
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-user-circle text-2xl"></i>
+                                    <span
+                                        th:text="${#authentication.getName()}"
+                                    ></span>
+                                </div>
+                                <!-- Icon đăng xuất -->
+                                <a
+                                    href="#"
+                                    onclick="showLogoutModal()"
+                                    class="text-red-400 hover:text-red-300 transition duration-300 flex items-center"
+                                >
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                </a>
+                            </div>
+                        </li>
+                        <li
+                            th:unless="${#authorization.expression('isAuthenticated()')}"
+                        >
+                            <a
+                                href="/login"
+                                class="bg-yellow-500 text-white px-5 py-2 rounded-full hover:bg-yellow-600 transition duration-300 flex items-center"
+                            >
+                                <i class="fas fa-sign-in-alt mr-2"></i> Đăng
+                                nhập
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Logout Confirm Modal -->
+        <div
+            id="logoutModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        >
+            <div
+                class="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm animate__animated animate__fadeIn"
+            >
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                    Xác nhận đăng xuất
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    Bạn có chắc chắn muốn đăng xuất không?
+                </p>
+                <div class="flex justify-end space-x-4">
+                    <button
+                        onclick="closeLogoutModal()"
+                        class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-300"
+                    >
+                        Hủy
+                    </button>
+                    <a
+                        href="/logout"
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+                    >
+                        Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hero Section -->
+        <section
+            class="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-32"
+        >
+            <div class="absolute inset-0 bg-black opacity-30"></div>
+            <div
+                class="container mx-auto text-center relative z-10"
+                data-aos="fade-up"
+            >
+                <h2 class="text-5xl font-bold mb-4">
+                    Chào mừng đến với TechShop
+                </h2>
+                <p class="text-xl mb-8">
+                    Mua sắm linh kiện máy tính và sản phẩm công nghệ chất lượng
+                    cao với giá tốt nhất!
+                </p>
+                <a
+                    href="/products"
+                    class="btn-primary bg-yellow-500 text-white px-8 py-4 rounded-full text-lg font-semibold"
+                    >Khám phá ngay</a
+                >
+            </div>
+            <div class="absolute bottom-0 w-full text-center">
+                <i
+                    class="fas fa-chevron-down text-3xl animate-bounce text-yellow-300"
+                ></i>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h3
+                    class="text-4xl font-bold text-center mb-12 text-gray-800"
+                    data-aos="fade-up"
+                >
+                    Danh mục sản phẩm
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div
+                        class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-left"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1591799264318-5e96a5731371?q=80&w=2070&auto=format&fit=crop"
+                            alt="CPU"
+                            class="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            CPU
+                        </h4>
+                        <p class="text-gray-600">Số lượng: 50 sản phẩm</p>
+                        <a
+                            href="/products?category=cpu"
+                            class="text-blue-600 hover:underline mt-2 inline-block"
+                            >Xem thêm</a
+                        >
+                    </div>
+                    <div
+                        class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1597733336794-12d05021d510?q=80&w=2070&auto=format&fit=crop"
+                            alt="GPU"
+                            class="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            GPU
+                        </h4>
+                        <p class="text-gray-600">Số lượng: 30 sản phẩm</p>
+                        <a
+                            href="/products?category=gpu"
+                            class="text-blue-600 hover:underline mt-2 inline-block"
+                            >Xem thêm</a
+                        >
+                    </div>
+                    <div
+                        class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-right"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1589254066213-a0c9dc853511?q=80&w=2070&auto=format&fit=crop"
+                            alt="RAM"
+                            class="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            RAM
+                        </h4>
+                        <p class="text-gray-600">Số lượng: 40 sản phẩm</p>
+                        <a
+                            href="/products?category=ram"
+                            class="text-blue-600 hover:underline mt-2 inline-block"
+                            >Xem thêm</a
+                        >
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advantages Section -->
+        <section class="py-20 bg-gray-100">
+            <div class="container mx-auto px-6 text-center">
+                <h3
+                    class="text-4xl font-bold mb-12 text-gray-800"
+                    data-aos="fade-up"
+                >
+                    Tại sao chọn TechShop?
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div
+                        class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-left"
+                    >
+                        <i
+                            class="fas fa-dollar-sign text-4xl text-blue-600 mb-4"
+                        ></i>
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            Giá cả cạnh tranh
+                        </h4>
+                        <p class="text-gray-600">
+                            Cam kết giá tốt nhất trên thị trường.
+                        </p>
+                    </div>
+                    <div
+                        class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                    >
+                        <i
+                            class="fas fa-headset text-4xl text-blue-600 mb-4"
+                        ></i>
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            Hỗ trợ 24/7
+                        </h4>
+                        <p class="text-gray-600">
+                            Đội ngũ tư vấn luôn sẵn sàng giúp bạn.
+                        </p>
+                    </div>
+                    <div
+                        class="p-8 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-right"
+                    >
+                        <i
+                            class="fas fa-shipping-fast text-4xl text-blue-600 mb-4"
+                        ></i>
+                        <h4 class="text-2xl font-semibold mb-2 text-gray-800">
+                            Giao hàng nhanh
+                        </h4>
+                        <p class="text-gray-600">
+                            Đảm bảo giao hàng đúng hẹn, an toàn.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products Section -->
+        <section class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h3
+                    class="text-4xl font-bold text-center mb-12 text-gray-800"
+                    data-aos="fade-up"
+                >
+                    Sản phẩm nổi bật
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div
+                        class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1591799264318-5e96a5731371?q=80&w=2070&auto=format&fit=crop"
+                            alt="Product"
+                            class="w-full h-40 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-xl font-semibold mb-2 text-gray-800">
+                            Intel Core i9
+                        </h4>
+                        <p class="text-gray-600 mb-2">10,000,000 VNĐ</p>
+                        <a
+                            href="/products/1"
+                            class="text-blue-600 hover:underline"
+                            >Xem chi tiết</a
+                        >
+                    </div>
+                    <div
+                        class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                        data-aos-delay="100"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1597733336794-12d05021d510?q=80&w=2070&auto=format&fit=crop"
+                            alt="Product"
+                            class="w-full h-40 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-xl font-semibold mb-2 text-gray-800">
+                            NVIDIA RTX 4090
+                        </h4>
+                        <p class="text-gray-600 mb-2">25,000,000 VNĐ</p>
+                        <a
+                            href="/products/2"
+                            class="text-blue-600 hover:underline"
+                            >Xem chi tiết</a
+                        >
+                    </div>
+                    <div
+                        class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                        data-aos-delay="200"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1589254066213-a0c9dc853511?q=80&w=2070&auto=format&fit=crop"
+                            alt="Product"
+                            class="w-full h-40 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-xl font-semibold mb-2 text-gray-800">
+                            G.Skill 32GB RAM
+                        </h4>
+                        <p class="text-gray-600 mb-2">3,500,000 VNĐ</p>
+                        <a
+                            href="/products/3"
+                            class="text-blue-600 hover:underline"
+                            >Xem chi tiết</a
+                        >
+                    </div>
+                    <div
+                        class="bg-gray-50 p-6 rounded-xl shadow-lg hover:shadow-2xl transition duration-500"
+                        data-aos="fade-up"
+                        data-aos-delay="300"
+                    >
+                        <img
+                            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop"
+                            alt="Product"
+                            class="w-full h-40 object-cover rounded-lg mb-4"
+                        />
+                        <h4 class="text-xl font-semibold mb-2 text-gray-800">
+                            SSD Samsung 1TB
+                        </h4>
+                        <p class="text-gray-600 mb-2">2,800,000 VNĐ</p>
+                        <a
+                            href="/products/4"
+                            class="text-blue-600 hover:underline"
+                            >Xem chi tiết</a
+                        >
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer
+            class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-10"
+        >
+            <div class="container mx-auto px-6 text-center">
+                <div class="flex justify-center space-x-6 mb-4">
+                    <a
+                        href="#"
+                        class="text-2xl hover:text-yellow-300 transition duration-300"
+                        ><i class="fab fa-facebook"></i
+                    ></a>
+                    <a
+                        href="#"
+                        class="text-2xl hover:text-yellow-300 transition duration-300"
+                        ><i class="fab fa-twitter"></i
+                    ></a>
+                    <a
+                        href="#"
+                        class="text-2xl hover:text-yellow-300 transition duration-300"
+                        ><i class="fab fa-instagram"></i
+                    ></a>
+                </div>
+                <p class="text-lg mb-2">
+                    © 2025 TechShop. All rights reserved.
+                </p>
+                <p>
+                    Liên hệ:
+                    <a
+                        href="mailto:contact@techshop.com"
+                        class="hover:underline"
+                        >contact@techshop.com</a
+                    >
+                    |
+                    <a href="tel:0123456789" class="hover:underline"
+                        >0123-456-789</a
+                    >
+                </p>
+            </div>
+        </footer>
+
+        <!-- AOS JavaScript -->
+        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+        <script>
+            AOS.init({
+                duration: 1000,
+                once: true,
+            });
+        </script>
+        <script>
+            // Hiển thị modal xác nhận đăng xuất
+            function showLogoutModal() {
+                document
+                    .getElementById("logoutModal")
+                    .classList.remove("hidden");
+            }
+
+            // Ẩn modal
+            function closeLogoutModal() {
+                document.getElementById("logoutModal").classList.add("hidden");
+            }
+        </script>
+    </body>
+</html>
