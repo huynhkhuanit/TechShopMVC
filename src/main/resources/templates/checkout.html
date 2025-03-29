@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giỏ hàng - TechShop</title>
+    <title>Thanh toán - TechShop</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
@@ -15,6 +15,13 @@
     <style>
         body {
             font-family: 'Open Sans', sans-serif;
+        }
+        .input-field {
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
     </style>
 </head>
@@ -67,60 +74,84 @@
             <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn đăng xuất không?</p>
             <div class="flex justify-end space-x-4">
                 <button onclick="closeLogoutModal()" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition duration-300">Hủy</button>
-                <a href="/logout" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300">Đăng xuất</a>
+                <form action="/logout" method="post" th:action="@{/logout}" th:object="${_csrf}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" 
+                            class="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg transition transform hover:bg-red-600 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50">
+                        <i class="fas fa-sign-out-alt text-xl"></i>
+                        <span>Đăng xuất</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Cart Section -->
+    <!-- Checkout Section -->
     <section class="py-20 bg-white">
         <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800" data-aos="fade-up">Giỏ hàng của bạn</h2>
+            <h2 class="text-4xl font-bold text-center mb-12 text-gray-800" data-aos="fade-up">Thanh toán</h2>
 
             <!-- Success/Error Messages -->
-            <div th:if="${message}" class="p-4 bg-green-100 text-green-800 p W-4 rounded-lg mb-6 text-center">
+            <div th:if="${message}" class="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center">
                 <p th:text="${message}"></p>
             </div>
             <div th:if="${error}" class="bg-red-100 text-red-800 p-4 rounded-lg mb-6 text-center">
                 <p th:text="${error}"></p>
             </div>
 
-            <!-- Cart Items -->
-            <div th:if="${#lists.isEmpty(cartItems)}" class="text-center text-gray-600">
-                <p>Giỏ hàng của bạn đang trống.</p>
-                <a href="/products" class="text-blue-600 hover:underline mt-4 inline-block">Tiếp tục mua sắm</a>
-            </div>
-
-            <div th:unless="${#lists.isEmpty(cartItems)}">
-                <div class="space-y-6">
-                    <div th:each="item : ${cartItems}" class="flex items-center bg-gray-50 p-6 rounded-xl shadow-lg" data-aos="fade-up">
-                        <img th:src="${item.product.imageUrl}" alt="Product" class="w-24 h-24 object-cover rounded-lg mr-6">
-                        <div class="flex-1">
-                            <h3 class="text-xl font-semibold text-gray-800" th:text="${item.product.name}"></h3>
-                            <p class="text-gray-600" th:text="${#numbers.formatInteger(item.product.price, 0, 'COMMA')} + ' VNĐ'"></p>
-                            <p class="text-gray-600">Tổng: <span th:text="${#numbers.formatInteger(item.product.price * item.quantity, 0, 'COMMA')} + ' VNĐ'"></span></p>
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Order Summary -->
+                <div class="lg:w-1/3 bg-gray-100 p-6 rounded-xl shadow-lg" data-aos="fade-right">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Tóm tắt đơn hàng</h3>
+                    <div class="space-y-4">
+                        <div th:each="item : ${cartItems}" class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-800 font-semibold" th:text="${item.product.name}"></p>
+                                <p class="text-gray-600" th:text="'x' + ${item.quantity}"></p>
+                            </div>
+                            <p class="text-gray-600" th:text="${#numbers.formatInteger(item.product.price * item.quantity, 0, 'COMMA')} + ' VNĐ'"></p>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <form th:action="@{/cart/update}" method="post" class="flex items-center">
-                                <input type="hidden" name="cartItemId" th:value="${item.id}">
-                                <input type="number" name="quantity" th:value="${item.quantity}" min="1" class="w-16 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <button type="submit" class="ml-2 text-blue-600 hover:underline">Cập nhật</button>
-                            </form>
-                            <form th:action="@{/cart/remove}" method="post">
-                                <input type="hidden" name="cartItemId" th:value="${item.id}">
-                                <button type="submit" class="text-red-600 hover:underline">Xóa</button>
-                            </form>
+                        <hr class="border-gray-300">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xl font-semibold text-gray-800">Tổng cộng:</p>
+                            <p class="text-xl text-gray-600" th:text="${#numbers.formatInteger(cartTotal, 0, 'COMMA')} + ' VNĐ'"></p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cart Summary -->
-                <div class="mt-8 bg-gray-100 p-6 rounded-xl shadow-lg" data-aos="fade-up">
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Tổng cộng</h3>
-                    <p class="text-xl text-gray-600 mb-4">
-                        Tổng tiền: <span th:text="${#numbers.formatInteger(cartTotal, 0, 'COMMA')} + ' VNĐ'"></span>
-                    </p>
-                    <a th:href="@{/checkout}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">Thanh toán</a>
+                <!-- Checkout Form -->
+                <div class="lg:w-2/3 bg-gray-50 p-6 rounded-xl shadow-lg" data-aos="fade-left">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6">Thông tin thanh toán</h3>
+                    <form th:action="@{/checkout}" method="post">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="customerName" class="block text-gray-700 font-semibold mb-2">Họ và tên</label>
+                                <input type="text" id="customerName" name="customerName" required
+                                       class="w-full p-3 border rounded-lg focus:outline-none input-field">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
+                                <input type="email" id="email" name="email" required
+                                       th:value="${#authentication.getName()}"
+                                       class="w-full p-3 border rounded-lg focus:outline-none input-field">
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-gray-700 font-semibold mb-2">Số điện thoại</label>
+                                <input type="text" id="phone" name="phone" required
+                                       class="w-full p-3 border rounded-lg focus:outline-none input-field">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="address" class="block text-gray-700 font-semibold mb-2">Địa chỉ giao hàng</label>
+                                <textarea id="address" name="address" required
+                                          class="w-full p-3 border rounded-lg focus:outline-none input-field" rows="4"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-end">
+                            <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                                Đặt hàng
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

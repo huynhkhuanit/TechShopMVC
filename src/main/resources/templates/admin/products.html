@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết sản phẩm - TechShop</title>
+    <title>Quản lý sản phẩm - TechShop Admin</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome CDN -->
@@ -16,6 +16,9 @@
         body {
             font-family: 'Open Sans', sans-serif;
         }
+        .table-row:hover {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -24,16 +27,13 @@
         <div class="container mx-auto flex justify-between items-center px-6">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-microchip text-3xl"></i>
-                <h1 class="text-3xl font-bold">TechShop</h1>
+                <h1 class="text-3xl font-bold">TechShop Admin</h1>
             </div>
             <nav>
                 <ul class="flex space-x-8 items-center">
-                    <li><a href="/" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-home mr-2"></i> Trang chủ</a></li>
-                    <li><a href="/products" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-laptop mr-2"></i> Sản phẩm</a></li>
-                    <li><a href="/about" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-info-circle mr-2"></i> Giới thiệu</a></li>
-                    <li><a href="/contact" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-envelope mr-2"></i> Liên hệ</a></li>
-                    <li><a href="/cart" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-shopping-cart mr-2"></i> Giỏ hàng</a></li>
-                    <li th:if="${#authorization.expression('isAuthenticated()')}">
+                    <li><a href="/admin/products" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-laptop mr-2"></i> Sản phẩm</a></li>
+                    <li><a href="/admin/orders" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-shopping-bag mr-2"></i> Đơn hàng</a></li>
+                    <li>
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-2">
                                 <i class="fas fa-user-circle text-2xl"></i>
@@ -43,11 +43,6 @@
                                 <i class="fas fa-sign-out-alt text-xl"></i>
                             </a>
                         </div>
-                    </li>
-                    <li th:unless="${#authorization.expression('isAuthenticated()')}">
-                        <a href="/login" class="bg-yellow-500 text-white px-5 py-2 rounded-full hover:bg-yellow-600 transition duration-300 flex items-center">
-                            <i class="fas fa-sign-in-alt mr-2"></i> Đăng nhập
-                        </a>
                     </li>
                 </ul>
             </nav>
@@ -73,9 +68,16 @@
         </div>
     </div>
 
-    <!-- Product Detail Section -->
+    <!-- Products Management Section -->
     <section class="py-20 bg-white">
         <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800" data-aos="fade-up">Quản lý sản phẩm</h2>
+                <a th:href="@{/admin/products/add}" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                    <i class="fas fa-plus mr-2"></i> Thêm sản phẩm
+                </a>
+            </div>
+
             <!-- Success/Error Messages -->
             <div th:if="${message}" class="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center">
                 <p th:text="${message}"></p>
@@ -84,23 +86,46 @@
                 <p th:text="${error}"></p>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-8">
-                <!-- Product Image -->
-                <div class="md:w-1/2" data-aos="fade-right">
-                    <img th:src="${product.imageUrl}" alt="Product" class="w-full h-96 object-cover rounded-lg shadow-lg">
-                </div>
-                <!-- Product Info -->
-                <div class="md:w-1/2" data-aos="fade-left">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-4" th:text="${product.name}"></h2>
-                    <p class="text-2xl text-gray-600 mb-4" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + ' VNĐ'"></p>
-                    <p class="text-gray-600 mb-6" th:text="${product.description}"></p>
-                    <p class="text-gray-600 mb-6">Danh mục: <span th:text="${product.category.name}"></span></p>
-                    <form th:action="@{/cart/add}" method="post" class="flex items-center space-x-4">
-                        <input type="hidden" name="productId" th:value="${product.id}">
-                        <input type="number" name="quantity" value="1" min="1" class="w-20 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300">Thêm vào giỏ hàng</button>
-                    </form>
-                </div>
+            <!-- Products Table -->
+            <div th:if="${#lists.isEmpty(products)}" class="text-center text-gray-600">
+                <p>Chưa có sản phẩm nào.</p>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(products)}" class="overflow-x-auto">
+                <table class="min-w-full bg-gray-50 rounded-xl shadow-lg">
+                    <thead>
+                        <tr class="bg-blue-500 text-white">
+                            <th class="py-4 px-6 text-left">ID</th>
+                            <th class="py-4 px-6 text-left">Tên sản phẩm</th>
+                            <th class="py-4 px-6 text-left">Danh mục</th>
+                            <th class="py-4 px-6 text-left">Giá</th>
+                            <th class="py-4 px-6 text-left">Hình ảnh</th>
+                            <th class="py-4 px-6 text-left">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="product : ${products}" class="table-row transition duration-300">
+                            <td class="py-4 px-6" th:text="${product.id}"></td>
+                            <td class="py-4 px-6" th:text="${product.name}"></td>
+                            <td class="py-4 px-6" th:text="${product.category.name}"></td>
+                            <td class="py-4 px-6" th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + ' VNĐ'"></td>
+                            <td class="py-4 px-6">
+                                <img th:src="${product.imageUrl}" alt="Product Image" class="w-16 h-16 object-cover rounded-lg">
+                            </td>
+                            <td class="py-4 px-6 flex space-x-4">
+                                <a th:href="@{/admin/products/edit(id=${product.id})}" class="text-blue-600 hover:underline">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </a>
+                                <form th:action="@{/admin/products/delete}" method="post">
+                                    <input type="hidden" name="id" th:value="${product.id}">
+                                    <button type="submit" class="text-red-600 hover:underline">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>

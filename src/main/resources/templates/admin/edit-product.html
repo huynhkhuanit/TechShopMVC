@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa sản phẩm - TechShop Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-5 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-microchip text-3xl"></i>
+                <h1 class="text-3xl font-bold">TechShop Admin</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-8 items-center">
+                    <li><a href="/admin/products" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-laptop mr-2"></i> Sản phẩm</a></li>
+                    <li><a href="/admin/orders" class="hover:text-yellow-300 transition duration-300 flex items-center"><i class="fas fa-shopping-bag mr-2"></i> Đơn hàng</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Edit Product Form Section -->
+    <section class="py-20 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800" data-aos="fade-up">Chỉnh sửa sản phẩm</h2>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <div th:if="${message}" class="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center">
+                <p th:text="${message}"></p>
+            </div>
+            <div th:if="${error}" class="bg-red-100 text-red-800 p-4 rounded-lg mb-6 text-center">
+                <p th:text="${error}"></p>
+            </div>
+
+            <!-- Edit Product Form -->
+            <form th:action="@{/admin/products/edit}" method="post" class="space-y-4">
+                <input type="hidden" name="id" th:value="${product.id}">
+
+                <div class="flex flex-col">
+                    <label for="name" class="text-xl font-semibold">Tên sản phẩm</label>
+                    <input type="text" id="name" name="name" class="p-2 border rounded-lg" th:value="${product.name}" required>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="categoryId" class="text-xl font-semibold">Danh mục</label>
+                    <select id="categoryId" name="categoryId" class="p-2 border rounded-lg" required>
+                        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${category.id == product.category.id}"></option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="price" class="text-xl font-semibold">Giá</label>
+                    <input type="number" id="price" name="price" class="p-2 border rounded-lg" th:value="${product.price}" required>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="imageUrl" class="text-xl font-semibold">Ảnh sản phẩm (URL)</label>
+                    <input type="text" id="imageUrl" name="imageUrl" class="p-2 border rounded-lg" th:value="${product.imageUrl}" required>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="description" class="text-xl font-semibold">Mô tả sản phẩm</label>
+                    <textarea id="description" name="description" rows="4" class="p-2 border rounded-lg" required th:text="${product.description}"></textarea>
+                </div>
+
+                <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600">Cập nhật sản phẩm</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-10">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-2xl hover:text-yellow-300 transition duration-300"><i class="fab fa-instagram"></i></a>
+            </div>
+            <p class="text-lg mb-2">© 2025 TechShop. All rights reserved.</p>
+            <p>
+                Liên hệ: <a href="mailto:contact@techshop.com" class="hover:underline">contact@techshop.com</a> | 
+                <a href="tel:0123456789" class="hover:underline">0123-456-789</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>

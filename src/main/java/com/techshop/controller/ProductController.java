@@ -1,9 +1,11 @@
 package com.techshop.controller;
 
-import com.techshop.model.Product;
 import com.techshop.model.CartItem;
+import com.techshop.model.Product;
+import com.techshop.model.Order;
 import com.techshop.service.CartService;
 import com.techshop.service.CategoryService;
+import com.techshop.service.OrderService;
 import com.techshop.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,6 +29,9 @@ public class ProductController {
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private OrderService orderService;
 
     @GetMapping("/products")
     public String showProducts(
@@ -137,5 +142,61 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi xóa sản phẩm khỏi giỏ hàng!");
         }
         return "redirect:/cart";
+    }
+
+    @GetMapping("/checkout")
+    public String showCheckout(Model model, RedirectAttributes redirectAttributes) {
+        try {
+            List<CartItem> cartItems = cartService.getCartItems();
+            if (cartItems.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Giỏ hàng của bạn đang trống!");
+                return "redirect:/cart";
+            }
+            double cartTotal = cartService.getCartTotal();
+            model.addAttribute("cartItems", cartItems);
+            model.addAttribute("cartTotal", cartTotal);
+            return "checkout";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để thanh toán!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi tải trang thanh toán!");
+            return "redirect:/cart";
+        }
+    }
+
+    @PostMapping("/checkout")
+    public String processCheckout(
+            @RequestParam String customerName,
+            @RequestParam String address,
+            @RequestParam String phone,
+            @RequestParam String email,
+            RedirectAttributes redirectAttributes) {
+        try {
+            orderService.createOrder(customerName, address, phone, email);
+            redirectAttributes.addFlashAttribute("message", "Đơn hàng của bạn đã được đặt thành công!");
+            return "redirect:/orders";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để đặt hàng!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi đặt hàng!");
+            return "redirect:/checkout";
+        }
+    }
+
+    @GetMapping("/orders")
+    public String showOrders(Model model, RedirectAttributes redirectAttributes) {
+        try {
+            List<Order> orders = orderService.getUserOrders();
+            model.addAttribute("orders", orders);
+            return "orders";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", "Vui lòng đăng nhập để xem đơn hàng!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Có lỗi xảy ra khi tải danh sách đơn hàng!");
+            return "redirect:/products";
+        }
     }
 }

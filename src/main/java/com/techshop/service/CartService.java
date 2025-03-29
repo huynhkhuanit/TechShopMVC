@@ -85,4 +85,14 @@ public class CartService {
                 .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
         cartItemRepository.delete(cartItem);
     }
+
+    public void clearCart() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (email == null || email.equals("anonymousUser")) {
+            throw new IllegalStateException("User must be logged in to clear cart");
+        }
+        User user = (User) userService.loadUserByUsername(email);
+        List<CartItem> cartItems = cartItemRepository.findByUser(user);
+        cartItemRepository.deleteAll(cartItems);
+    }
 }

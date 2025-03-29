@@ -1,6 +1,7 @@
 package com.techshop.config;
 
 import com.techshop.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,27 +14,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/css/**", "/js/**", "/images/**", "/about", "/contact", "/register", "/login").permitAll()
-                .requestMatchers("/products").authenticated() // Yêu cầu đăng nhập để truy cập /products
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-                .permitAll()
-            );
-
-        return http.build();
-    }
+    @Autowired
+    private UserService userService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -41,7 +23,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserService userService() {
-        return new UserService();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/cart/**", "/checkout", "/orders").authenticated()
+                        .anyRequest().permitAll())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/products")
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // URL xử lý logout
+                        .logoutSuccessUrl("/") // Chuyển hướng sau khi logout
+                        .permitAll());
+
+        return http.build();
     }
 }
